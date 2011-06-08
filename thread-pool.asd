@@ -34,7 +34,7 @@
   :license "Public Domain"
   :author "Andrea Chiumenti"
   :serial t
-  :depends-on (#:bordeaux-threads)
+  :depends-on (#:bordeaux-threads #:arnesi)
   :components ((:module src
                         :components ((:file "package")
                                      (:file "thread-pool" :depends-on ("package"))))))

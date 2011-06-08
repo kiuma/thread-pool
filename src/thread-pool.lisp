@@ -34,10 +34,10 @@
 (defgeneric stop-pool (thread-pool)
   (:documentation "Stops serving jobs"))
 (defgeneric add-to-pool (thread-pool functions)
-  :documentation "Add a function or a list of function to the thread pool")
+  (:documentation "Add a function or a list of function to the thread pool"))
 
 (defclass thread-pool ()
-  ((jobs :accessor jobs :initform ())
+  ((jobs :accessor jobs :initform (make-instance 'arnesi:queue))
    (pool-size :reader pool-size :initarg :pool-size)
    (threads :accessor threads :initform ())
    (pool-condition-vars :accessor pool-condition-vars :initform ())
@@ -105,7 +105,7 @@
 							   (func nil))
 						       (bordeaux-threads:with-lock-held (pool-lock)
 							 (setf (nth ix threads) nil
-							       func (pop jobs)))						       
+							       func (arnesi:dequeue jobs)))						       
 						       (when func 
 							 (funcall func))
 						       (bordeaux-threads:with-lock-held (pool-lock)
@@ -133,8 +133,9 @@
 		   (pool-condition pool-condition))
       thread-pool
     (bordeaux-threads:with-lock-held (pool-lock)
-      (setf jobs (append jobs (if (listp functions)
-				  funtions 
-				  (list functions)))))
+      (if (listp functions)
+	  (dolist (func functions)
+	    (arnesi:enqueue jobs func)) 
+	  (arnesi:enqueue jobs functions)))
     (print jobs)
     (bordeaux-threads:condition-notify pool-condition)))
