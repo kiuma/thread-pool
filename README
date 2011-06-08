@@ -26,15 +26,13 @@ CL-USER> (thread-pool:start-pool *pool*)
  #<SB-THREAD:THREAD "Anonymous thread" RUNNING {1002B88A71}>
  #<SB-THREAD:THREAD "Anonymous thread" RUNNING {1002B88C71}>)
 
-
-CL-USER> (defun fib (n)
-	   (if (> n 2)
-	       (+ (fib (- n 1)) (fib (- n 2)))
-	       1))
-FIB
-CL-USER> (defun make-lazy-fib (n)
-	     (lambda ()
-	       (format t "fib ~a = ~a~%" n (fib n))))
+CL-USER> (let ((out *standard-output*))
+	   (defun make-lazy-fib (n)
+	     (flet ((fib (n) (if (> n 2)
+				 (+ (fib (- n 1)) (fib (- n 2)))
+				 1)))
+	       (lambda ()
+		 (format out "~%fib ~a = ~a~%" n (fib n))))))
 MAKE-LAZY-FIB
 CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 45))
 		(thread-pool:add-to-pool *pool* (make-lazy-fib 20))
