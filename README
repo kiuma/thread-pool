@@ -41,34 +41,6 @@ CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 15))
 		(thread-pool:add-to-pool *pool* (make-lazy-fib 10))
 		(thread-pool:add-to-pool *pool* (make-lazy-fib 6)))
 
-(#<CLOSURE (LAMBDA #) {10057A4AB9}>) 
-(#<CLOSURE (LAMBDA #) {10057A4AB9}> #<CLOSURE (LAMBDA #) {10057A59E9}>) 
-(#<CLOSURE (LAMBDA #) {10057A4AB9}> #<CLOSURE (LAMBDA #) {10057A59E9}>
- #<CLOSURE (LAMBDA #) {10057A6F99}>) fib 15 = 610
-
-(#<CLOSURE (LAMBDA #) {10057A6F99}> #<CLOSURE (LAMBDA #) {10057C0BB9}>) 
-(#<CLOSURE (LAMBDA #) {10057A6F99}> #<CLOSURE (LAMBDA #) {10057C0BB9}>
- #<CLOSURE (LAMBDA #) {10057C2169}>) fib 20 = 6765
-fib 5 = 5
-
-(#<CLOSURE (LAMBDA #) {10057C2169}> #<CLOSURE (LAMBDA #) {10057C3E39}>) fib 17 = 
-1fib 51970
- = 55
-fib 6 = 8
-1
-CL-USER> (let ((out *standard-output*))
-	   (defun make-lazy-fib (n)
-	     (lambda ()
-	       (format out "~%fib ~a = ~a~%" n (fib n)))))
-STYLE-WARNING: redefining COMMON-LISP-USER::MAKE-LAZY-FIB in DEFUN
-MAKE-LAZY-FIB
-CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 15))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 20))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 5))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 17))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 10))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 6)))
-
 (#<CLOSURE (LAMBDA #) {10058664E9}>) 
 (#<CLOSURE (LAMBDA #) {10058664E9}> #<CLOSURE (LAMBDA #) {1005867419}>) 
 (#<CLOSURE (LAMBDA #) {10058664E9}> #<CLOSURE (LAMBDA #) {1005867419}>
