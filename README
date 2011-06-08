@@ -12,9 +12,9 @@ CL-USER> (require :thread-pool)
 
 CL-USER> (let ((out *standard-output*))
 	   (defun make-lazy-fib (n)
-	     (flet ((fib (n) (if (> n 2)
-				 (+ (fib (- n 1)) (fib (- n 2)))
-				 1)))
+	     (labels ((fib (n) (if (> n 2)
+                               (+ (fib (- n 1)) (fib (- n 2)))
+			       1)))
 	       (lambda ()
 		 (format out "~%fib ~a = ~a~%" n (fib n))))))
 
