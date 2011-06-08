@@ -34,46 +34,6 @@ CL-USER> (let ((out *standard-output*))
 	       (lambda ()
 		 (format out "~%fib ~a = ~a~%" n (fib n))))))
 MAKE-LAZY-FIB
-CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 45))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 20))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 5)))
-
-(#<CLOSURE (LAMBDA #) {1002DD2D49}>) 
-(#<CLOSURE (LAMBDA #) {1002DD2D49}> #<CLOSURE (LAMBDA #) {1002DD4DB9}>) 
-(#<CLOSURE (LAMBDA #) {1002DD4DB9}> #<CLOSURE (LAMBDA #) {1002DD68C9}>) 
-1
-CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 15))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 20))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 5)))
-
-(#<CLOSURE (LAMBDA #) {1002E7B009}>) 
-(#<CLOSURE (LAMBDA #) {1002E7B009}> #<CLOSURE (LAMBDA #) {1002E7BF39}>) 
-(#<CLOSURE (LAMBDA #) {1002E7B009}> #<CLOSURE (LAMBDA #) {1002E7BF39}>
- #<CLOSURE (LAMBDA #) {1002E7D4E9}>) 
-1
-CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 15))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 20))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 5))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 17))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 10))
-		(thread-pool:add-to-pool *pool* (make-lazy-fib 6)))
-
-(#<CLOSURE (LAMBDA #) {1002F87EB9}>) 
-(#<CLOSURE (LAMBDA #) {1002F87EB9}> #<CLOSURE (LAMBDA #) {1002F90ED9}>) 
-(#<CLOSURE (LAMBDA #) {1002F87EB9}> #<CLOSURE (LAMBDA #) {1002F90ED9}>
- #<CLOSURE (LAMBDA #) {1002F92489}>) 
-(#<CLOSURE (LAMBDA #) {1002F92489}> #<CLOSURE (LAMBDA #) {1002F94159}>) 
-(#<CLOSURE (LAMBDA #) {1002F92489}> #<CLOSURE (LAMBDA #) {1002F94159}>
- #<CLOSURE (LAMBDA #) {1002F95709}>) 
-(#<CLOSURE (LAMBDA #) {1002F94159}> #<CLOSURE (LAMBDA #) {1002F95709}>
- #<CLOSURE (LAMBDA #) {1002F973D9}>) 
-1
-CL-USER> (let ((out *standard-output*))
-	   (defun make-lazy-fib (n)
-	     (lambda ()
-	       (format out "fib ~a = ~a~%" n (fib n)))))
-STYLE-WARNING: redefining COMMON-LISP-USER::MAKE-LAZY-FIB in DEFUN
-MAKE-LAZY-FIB
 CL-USER> (progn (thread-pool:add-to-pool *pool* (make-lazy-fib 15))
 		(thread-pool:add-to-pool *pool* (make-lazy-fib 20))
 		(thread-pool:add-to-pool *pool* (make-lazy-fib 5))
