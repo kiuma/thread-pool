@@ -149,4 +149,5 @@
 	  (dolist (func functions)
 	    (arnesi:enqueue jobs func)) 
 	  (arnesi:enqueue jobs functions))
+      (print jobs)
       (bordeaux-threads:condition-notify pool-condition))))
