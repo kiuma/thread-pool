@@ -40,6 +40,7 @@
   ((jobs :accessor jobs :initform (make-instance 'arnesi:queue))
    (pool-size :reader pool-size :initarg :pool-size)
    (threads :accessor threads :initform ())
+   (thread-locks :accessor thread-locks :initform ())
    (pool-condition-vars :accessor pool-condition-vars :initform ())
    (pool-lock :accessor pool-lock :initform (bordeaux-threads:make-lock))
    (pool-condition :accessor pool-condition :initform (bordeaux-threads:make-condition-variable))
@@ -58,6 +59,7 @@
   (with-accessors ((pool-condition pool-condition)		   
 		   (main-thread main-thread)
 		   (threads threads)
+		   (thread-locks thread-locks)
 		   (pool-size pool-size)
 		   (running-p running-p)
 		   (pool-lock pool-lock)
@@ -66,29 +68,38 @@
       thread-pool
     (unless running-p
       (setf running-p t
-	    main-thread (let ((lock (bordeaux-threads:make-lock)))
-			  (bordeaux-threads:make-thread 
-			   (lambda ()
-			     (bordeaux-threads:with-lock-held (lock)
-			       (loop
-				  while (running-p thread-pool)
-				  do (progn (bordeaux-threads:condition-wait pool-condition lock)
-					    (with-accessors ((threads threads)
-							     (pool-condition-vars pool-condition-vars)
-							     (jobs jobs))
-						thread-pool
-					      (when jobs					      
-						(loop for thr in threads
-						   for thr-cond in pool-condition-vars
-						   when thr
-						   return (bordeaux-threads:condition-notify thr-cond)))))))))
-			  (bordeaux-threads:condition-notify pool-condition))
+	    main-thread (let ((lock pool-lock))
+			  (let ((thread (bordeaux-threads:make-thread 
+					 (lambda ()
+					   (bordeaux-threads:with-lock-held (lock)
+					     (loop
+						while (running-p thread-pool)
+						do (progn (bordeaux-threads:condition-wait pool-condition lock)
+							  (with-accessors ((threads threads)
+									   (pool-condition-vars pool-condition-vars)
+									   (jobs jobs))
+							      thread-pool
+							    (when jobs					      
+							      (loop for thr in threads
+								 for thr-cond in pool-condition-vars
+								 for thr-lock in thread-locks
+								 when (and thr (bordeaux-threads:acquire-lock thr-lock nil))
+								 return (progn (bordeaux-threads:condition-notify thr-cond) 
+									       (bordeaux-threads:release-lock thr-lock))))))))))))
+			    (bordeaux-threads:with-lock-held (lock)
+			      (bordeaux-threads:condition-notify pool-condition))
+			    thread))
+
 	    pool-condition-vars (loop for i from 1 to pool-size
 				   collect (bordeaux-threads:make-condition-variable))
+
+	    thread-locks (loop for i from 1 to pool-size
+			    collect (bordeaux-threads:make-lock))
+
 	    threads (loop for i from 1 to pool-size
 		       collect (let* ((ix (- i 1))
-				      (lock (bordeaux-threads:make-lock))
-				      (condition (nth ix pool-condition-vars))) 
+				      (lock (nth ix thread-locks))
+				      (condition (nth ix pool-condition-vars)))
 				 (bordeaux-threads:make-thread 
 				  (lambda ()
 				    (bordeaux-threads:with-lock-held (lock)
@@ -105,13 +116,13 @@
 							   (func nil))
 						       (bordeaux-threads:with-lock-held (pool-lock)
 							 (setf (nth ix threads) nil
-							       func (arnesi:dequeue jobs)))						       
+							       func (arnesi:dequeue jobs)))       
 						       (when func 
 							 (funcall func))
 						       (bordeaux-threads:with-lock-held (pool-lock)
 							 (setf (nth ix threads) th))
-						       (bordeaux-threads:condition-notify pool-condition))))))
-				    (bordeaux-threads:condition-notify condition)))))))))
+						       (bordeaux-threads:condition-notify pool-condition)))))
+				      (bordeaux-threads:condition-notify condition))))))))))
 
 (defmethod stop-pool ((thread-pool thread-pool))
   (with-accessors ((threads threads)
@@ -132,10 +143,10 @@
 		   (pool-lock pool-lock)
 		   (pool-condition pool-condition))
       thread-pool
+    
     (bordeaux-threads:with-lock-held (pool-lock)
       (if (listp functions)
 	  (dolist (func functions)
 	    (arnesi:enqueue jobs func)) 
-	  (arnesi:enqueue jobs functions)))
-    (print jobs)
-    (bordeaux-threads:condition-notify pool-condition)))
+	  (arnesi:enqueue jobs functions))
+      (bordeaux-threads:condition-notify pool-condition))))
