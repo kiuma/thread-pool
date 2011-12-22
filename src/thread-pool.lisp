@@ -29,6 +29,14 @@
 
 (in-package :thread-pool)
 
+(defgeneric callable-call (call))
+
+(defclass callable ()
+  ((handler-func :accessor callable-handler-func :initarg :handler-func)))
+
+(defmethod callable-call ((callable callable))
+  (funcall (callable-handler-func callable)))
+
 (defgeneric start-pool (thread-pool)
   (:documentation "Starts serving jobs"))
 (defgeneric stop-pool (thread-pool)
@@ -117,8 +125,11 @@
 						       (bordeaux-threads:with-lock-held (pool-lock)
 							 (setf (nth ix threads) nil
 							       func (arnesi:dequeue jobs)))       
-						       (when func 
-							 (funcall func))
+						       (when func
+							 (format t "Calling func: ~a~%" func)
+							 (if (typep func 'callable)
+							     (callable-call func)
+							     (funcall func)))
 						       (bordeaux-threads:with-lock-held (pool-lock)
 							 (setf (nth ix threads) th))
 						       (bordeaux-threads:condition-notify pool-condition)))))

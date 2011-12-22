@@ -35,5 +35,8 @@
 	   #:start-pool
 	   #:stop-pool
 	   #:add-to-pool
-	   #:pool-size)
+	   #:pool-size
+	   #:callable
+	   #:callable-call
+	   #:callable-handler-func)
   (:documentation "A simple thread pool system"))
