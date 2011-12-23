@@ -109,31 +109,30 @@
 				      (lock (nth ix thread-locks))
 				      (condition (nth ix pool-condition-vars)))
 				 (bordeaux-threads:make-thread 
-				  (lambda ()
-				    (bordeaux-threads:with-lock-held (lock)
-				      (loop 
+				  (lambda ()				    
+				    (loop 
 					 while running-p
-					 do (progn (bordeaux-threads:condition-wait condition lock)
-						   (with-accessors ((pool-lock pool-lock)
-								    (threads threads)
-								    (jbos jobs)
-								    (pool-condition pool-condition))
-						       thread-pool
-						     
-						     (let ((th (bordeaux-threads:current-thread))
-							   (func nil))
-						       (bordeaux-threads:with-lock-held (pool-lock)
-							 (setf (nth ix threads) nil
-							       func (arnesi:dequeue jobs)))       
-						       (when func
-							 (format t "Calling func: ~a~%" func)
-							 (if (typep func 'callable)
-							     (callable-call func)
-							     (funcall func)))
-						       (bordeaux-threads:with-lock-held (pool-lock)
-							 (setf (nth ix threads) th))
-						       (bordeaux-threads:condition-notify pool-condition)))))
-				      (bordeaux-threads:condition-notify condition))))))))))
+					 do (bordeaux-threads:with-lock-held (lock)
+					      (progn (bordeaux-threads:condition-wait condition lock)
+						     (with-accessors ((pool-lock pool-lock)
+								      (threads threads)
+								      (jbos jobs)
+								      (pool-condition pool-condition))
+							 thread-pool
+						       
+						       (let ((th (bordeaux-threads:current-thread))
+							     (func nil))
+							 (bordeaux-threads:with-lock-held (pool-lock)
+							   (setf (nth ix threads) nil
+								 func (arnesi:dequeue jobs)))       
+							 (when func
+							   (if (typep func 'callable)
+							       (callable-call func)
+							       (funcall func)))
+							 (bordeaux-threads:with-lock-held (pool-lock)
+							   (setf (nth ix threads) th))
+							 (bordeaux-threads:condition-notify pool-condition))))))
+				    (bordeaux-threads:condition-notify condition)))))))))
 
 (defmethod stop-pool ((thread-pool thread-pool))
   (with-accessors ((threads threads)
@@ -160,5 +159,4 @@
 	  (dolist (func functions)
 	    (arnesi:enqueue jobs func)) 
 	  (arnesi:enqueue jobs functions))
-      (print jobs)
       (bordeaux-threads:condition-notify pool-condition))))
