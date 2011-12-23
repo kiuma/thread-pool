@@ -131,8 +131,7 @@
 							       (funcall func)))
 							 (bordeaux-threads:with-lock-held (pool-lock)
 							   (setf (nth ix threads) th)))))))
-				    (bordeaux-threads:condition-notify condition)
-				    ))))))))
+				    (bordeaux-threads:condition-notify condition)))))))))
 
 (defmethod stop-pool ((thread-pool thread-pool))
   (with-accessors ((threads threads)
