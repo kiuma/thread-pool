@@ -32,11 +32,13 @@
 (defpackage :thread-pool
   (:use :cl)
   (:export #:make-thread-pool
-	   #:start-pool
-	   #:stop-pool
-	   #:add-to-pool
-	   #:pool-size
-	   #:callable
-	   #:callable-call
-	   #:callable-handler-func)
+       #:start-pool
+       #:stop-pool
+       #:add-to-pool
+       #:pool-size
+       #:callable
+       #:callable-call
+       #:callable-handler-func
+       #:with-thread-pool
+       #:wait-pool-empty)
   (:documentation "A simple thread pool system"))
